@@ -3,90 +3,87 @@ import matplotlib.pyplot as plt
 import numpy as np
 import time
 
-# ==============================
-# CONFIGURACIÓN GENERAL
-# ==============================
-
 st.set_page_config(
-    page_title="Simulación de Separación de Mezclas",
+    page_title="Simulador Científico de Separación",
     layout="wide"
 )
 
-st.title("Simulación Científica: Separación de Mezcla")
+st.title("Simulador Científico de Separación de Mezcla")
+st.markdown("Sistema cerrado • Conservación de la masa")
 
-st.markdown("---")
+col1, col2 = st.columns([1, 2])
 
-# ==============================
-# PANEL IZQUIERDO – CONTROL
-# ==============================
+with col1:
+    st.subheader("Parámetros")
 
-col_control, col_sim = st.columns([1, 2])
+    sal = st.number_input("Sal (g)", 0.0, step=1.0)
+    arena = st.number_input("Arena (g)", 0.0, step=1.0)
+    hierro = st.number_input("Hierro (g)", 0.0, step=1.0)
 
-with col_control:
-    st.subheader("Parámetros del Experimento")
-
-    sal = st.number_input("Masa de Sal (g)", min_value=0.0, value=0.0, step=1.0)
-    arena = st.number_input("Masa de Arena (g)", min_value=0.0, value=0.0, step=1.0)
-    hierro = st.number_input("Masa de Hierro (g)", min_value=0.0, value=0.0, step=1.0)
+    velocidad = st.slider("Velocidad de simulación", 0.01, 0.2, 0.05)
 
     masa_total = sal + arena + hierro
+    st.metric("Masa total inicial", f"{masa_total:.2f} g")
 
-    st.markdown("---")
-    st.metric("Masa Total Inicial (Sistema Cerrado)", f"{masa_total:.2f} g")
+    iniciar = st.button("Iniciar experimento")
 
-    iniciar = st.button("Iniciar proceso de separación")
-
-# ==============================
-# PANEL DERECHO – SIMULACIÓN
-# ==============================
-
-with col_sim:
-
-    st.subheader("Área de Simulación")
-
-    fig, ax = plt.subplots(figsize=(8, 5))
-    ax.set_xlim(0, 10)
-    ax.set_ylim(0, 6)
-    ax.set_xticks([])
-    ax.set_yticks([])
-    ax.set_title("Sistema Inicial")
-
-    # Generación inicial de partículas
-    np.random.seed(1)
-
-    n_sal = int(sal)
-    n_arena = int(arena)
-    n_hierro = int(hierro)
-
-    sal_x = np.random.uniform(1, 5, n_sal)
-    sal_y = np.random.uniform(1, 5, n_sal)
-
-    arena_x = np.random.uniform(1, 5, n_arena)
-    arena_y = np.random.uniform(1, 5, n_arena)
-
-    hierro_x = np.random.uniform(1, 5, n_hierro)
-    hierro_y = np.random.uniform(1, 5, n_hierro)
-
-    # Dibujar sistema inicial
-    ax.scatter(sal_x, sal_y, label="Sal", s=20)
-    ax.scatter(arena_x, arena_y, label="Arena", s=20)
-    ax.scatter(hierro_x, hierro_y, label="Hierro", s=20)
-
-    # Dibujar imán
-    ax.text(8.5, 3, "🧲", fontsize=40)
-
-    ax.legend(loc="upper right")
+with col2:
 
     placeholder = st.empty()
-    placeholder.pyplot(fig)
-
-    # ==============================
-    # ANIMACIÓN DE SEPARACIÓN
-    # ==============================
 
     if iniciar and masa_total > 0:
 
-        st.info("Aplicando campo magnético...")
+        np.random.seed(2)
+
+        n_sal = int(sal)
+        n_arena = int(arena)
+        n_hierro = int(hierro)
+
+        sal_x = np.random.uniform(1, 5, n_sal)
+        sal_y = np.random.uniform(1, 5, n_sal)
+
+        arena_x = np.random.uniform(1, 5, n_arena)
+        arena_y = np.random.uniform(1, 5, n_arena)
+
+        hierro_x = np.random.uniform(1, 5, n_hierro)
+        hierro_y = np.random.uniform(1, 5, n_hierro)
+
+        progreso = st.progress(0)
+
+        # ==========================
+        # ETAPA 1 – MAGNETISMO
+        # ==========================
+
+        for step in range(40):
+
+            fig, ax = plt.subplots(figsize=(8, 5))
+            ax.set_xlim(0, 10)
+            ax.set_ylim(0, 6)
+            ax.set_xticks([])
+            ax.set_yticks([])
+            ax.set_title("Etapa 1: Separación Magnética")
+
+            dx = 8 - hierro_x
+            dy = 3 - hierro_y
+            dist = np.sqrt(dx**2 + dy**2) + 1e-6
+
+            hierro_x += dx / dist * 0.2
+            hierro_y += dy / dist * 0.2
+
+            ax.scatter(sal_x, sal_y, s=15)
+            ax.scatter(arena_x, arena_y, s=15)
+            ax.scatter(hierro_x, hierro_y, s=20)
+
+            ax.text(8.5, 3, "🧲", fontsize=40)
+
+            placeholder.pyplot(fig)
+            progreso.progress(step / 100)
+
+            time.sleep(velocidad)
+
+        # ==========================
+        # ETAPA 2 – FILTRACIÓN
+        # ==========================
 
         for step in range(30):
 
@@ -95,39 +92,50 @@ with col_sim:
             ax.set_ylim(0, 6)
             ax.set_xticks([])
             ax.set_yticks([])
-            ax.set_title("Separación Magnética en Proceso")
+            ax.set_title("Etapa 2: Filtración")
 
-            # Movimiento progresivo del hierro hacia el imán
-            hierro_x = hierro_x + (8 - hierro_x) * 0.08
-            hierro_y = hierro_y + (3 - hierro_y) * 0.08
+            arena_y -= 0.1
+
+            ax.scatter(sal_x, sal_y, s=15)
+            ax.scatter(arena_x, arena_y, s=20)
+            ax.scatter(hierro_x, hierro_y, s=20)
+
+            placeholder.pyplot(fig)
+            progreso.progress((40 + step) / 100)
+
+            time.sleep(velocidad)
+
+        # ==========================
+        # ETAPA 3 – EVAPORACIÓN
+        # ==========================
+
+        for step in range(30):
+
+            fig, ax = plt.subplots(figsize=(8, 5))
+            ax.set_xlim(0, 10)
+            ax.set_ylim(0, 6)
+            ax.set_xticks([])
+            ax.set_yticks([])
+            ax.set_title("Etapa 3: Evaporación")
+
+            sal_x += 0.05
 
             ax.scatter(sal_x, sal_y, s=20)
             ax.scatter(arena_x, arena_y, s=20)
             ax.scatter(hierro_x, hierro_y, s=20)
 
-            ax.text(8.5, 3, "🧲", fontsize=40)
-
             placeholder.pyplot(fig)
-            time.sleep(0.05)
+            progreso.progress((70 + step) / 100)
 
-        st.success("Hierro separado mediante imantación.")
+            time.sleep(velocidad)
 
-        # Mostrar sistema final
-        fig, ax = plt.subplots(figsize=(8, 5))
-        ax.set_xlim(0, 10)
-        ax.set_ylim(0, 6)
-        ax.set_xticks([])
-        ax.set_yticks([])
-        ax.set_title("Sistema Tras Separación Magnética")
+        progreso.progress(1.0)
 
-        ax.scatter(sal_x, sal_y, s=20)
-        ax.scatter(arena_x, arena_y, s=20)
-        ax.scatter(hierro_x, hierro_y, s=20)
-
-        ax.text(8.5, 3, "🧲", fontsize=40)
-
-        placeholder.pyplot(fig)
+        st.success("Proceso completado.")
 
         st.markdown("---")
-        st.metric("Masa Final del Sistema", f"{masa_total:.2f} g")
-        st.caption("Ley de Conservación de la Masa verificada: Sistema cerrado.")
+        st.subheader("Informe Experimental")
+
+        st.write(f"Masa inicial: {masa_total:.2f} g")
+        st.write(f"Masa final: {masa_total:.2f} g")
+        st.write("Error experimental: 0.00 %")
