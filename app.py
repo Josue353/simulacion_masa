@@ -77,43 +77,40 @@ with col2:
         hierro_y = np.random.uniform(2.5, 5, n_hierro)
 
         # ==========================
-        # ETAPA 1 – IMANTACIÓN
-        # ==========================
+# ETAPA 1 – IMANTACIÓN (FLUIDA)
+# ==========================
 
-        if explicar:
-            st.info("Primero aplicamos un campo magnético. "
-                    "Las limaduras de hierro son atraídas hacia el imán "
-                    "porque son materiales ferromagnéticos.")
+fig, ax = plt.subplots(figsize=(8, 5))
+ax.set_xlim(0, 10)
+ax.set_ylim(0, 6)
+ax.set_xticks([])
+ax.set_yticks([])
+ax.set_title("Etapa 1: Imantación")
 
-        for step in range(40):
+# Dibujar imán fijo
+ax.add_patch(Rectangle((8, 2), 0.4, 2, color='red'))
+ax.add_patch(Rectangle((8.8, 2), 0.4, 2, color='blue'))
+ax.add_patch(Rectangle((8, 2), 1.2, 0.3, color='black'))
 
-            fig, ax = plt.subplots(figsize=(8, 5))
-            ax.set_xlim(0, 10)
-            ax.set_ylim(0, 6)
-            ax.set_xticks([])
-            ax.set_yticks([])
-            ax.set_title("Etapa 1: Imantación")
+scatter_sal = ax.scatter(sal_x, sal_y, s=15, color="white", edgecolors="black")
+scatter_arena = ax.scatter(arena_x, arena_y, s=20, color="#C2B280")
+scatter_hierro = ax.scatter(hierro_x, hierro_y, s=25, color="gray")
 
-            dx = 8 - hierro_x
-            dy = 3 - hierro_y
-            dist = np.sqrt(dx**2 + dy**2) + 1e-6
+placeholder.pyplot(fig)
 
-            hierro_x += (dx / dist) * 0.2 * campo
-            hierro_y += (dy / dist) * 0.2 * campo
+for step in range(60):
 
-            ax.scatter(sal_x, sal_y, s=15, color="white", edgecolors="black", label="Sal")
-            ax.scatter(arena_x, arena_y, s=20, color="#C2B280", label="Arena")
-            ax.scatter(hierro_x, hierro_y, s=25, color="gray", label="Hierro")
+    dx = 8 - hierro_x
+    dy = 3 - hierro_y
+    dist = np.sqrt(dx**2 + dy**2) + 1e-6
 
-            # Imán
-            ax.add_patch(Rectangle((8, 2), 0.4, 2, color='red'))
-            ax.add_patch(Rectangle((8.8, 2), 0.4, 2, color='blue'))
-            ax.add_patch(Rectangle((8, 2), 1.2, 0.3, color='black'))
+    hierro_x += (dx / dist) * 0.25 * campo
+    hierro_y += (dy / dist) * 0.25 * campo
 
-            ax.legend(loc="upper left")
+    scatter_hierro.set_offsets(np.c_[hierro_x, hierro_y])
 
-            placeholder.pyplot(fig)
-            time.sleep(velocidad)
+    placeholder.pyplot(fig)
+    time.sleep(velocidad * 0.6)
 
         # ==========================
         # ETAPA 2 – SEPARACIÓN MECÁNICA
