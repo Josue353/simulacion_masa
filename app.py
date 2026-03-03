@@ -44,6 +44,8 @@ with col1:
     campo = st.slider("Intensidad del campo magnético", 0.1, 2.0, 1.0)
     velocidad = st.slider("Velocidad de simulación", 0.01, 0.15, 0.05)
 
+    explicar = st.checkbox("🎤 Activar modo explicación")
+
     masa_total = sal + arena + hierro
     st.metric("Masa total inicial (Sistema cerrado)", f"{masa_total:.2f} g")
 
@@ -59,7 +61,7 @@ with col2:
 
     if iniciar and masa_total > 0:
 
-        np.random.seed(6)
+        np.random.seed(7)
 
         n_sal = int(sal)
         n_arena = int(arena)
@@ -77,6 +79,11 @@ with col2:
         # ==========================
         # ETAPA 1 – IMANTACIÓN
         # ==========================
+
+        if explicar:
+            st.info("Primero aplicamos un campo magnético. "
+                    "Las limaduras de hierro son atraídas hacia el imán "
+                    "porque son materiales ferromagnéticos.")
 
         for step in range(40):
 
@@ -98,7 +105,7 @@ with col2:
             ax.scatter(arena_x, arena_y, s=20, color="#C2B280", label="Arena")
             ax.scatter(hierro_x, hierro_y, s=25, color="gray", label="Hierro")
 
-            # Imán tipo herradura
+            # Imán
             ax.add_patch(Rectangle((8, 2), 0.4, 2, color='red'))
             ax.add_patch(Rectangle((8.8, 2), 0.4, 2, color='blue'))
             ax.add_patch(Rectangle((8, 2), 1.2, 0.3, color='black'))
@@ -109,8 +116,13 @@ with col2:
             time.sleep(velocidad)
 
         # ==========================
-        # ETAPA 2 – SEPARACIÓN ARENA / SAL
+        # ETAPA 2 – SEPARACIÓN MECÁNICA
         # ==========================
+
+        if explicar:
+            st.info("Luego realizamos una separación mecánica. "
+                    "La arena, por diferencia de tamaño de partícula, "
+                    "se separa de la sal.")
 
         for step in range(40):
 
@@ -119,54 +131,74 @@ with col2:
             ax.set_ylim(0, 6)
             ax.set_xticks([])
             ax.set_yticks([])
-            ax.set_title("Etapa 2: Separación Mecánica (Filtración)")
+            ax.set_title("Etapa 2: Separación Mecánica")
 
-            # Arena cae hacia abajo
             arena_y -= 0.07
-
-            # Sal sube ligeramente (permanece arriba)
             sal_y += 0.02
 
-            ax.scatter(sal_x, sal_y, s=15, color="white", edgecolors="black", label="Sal")
-            ax.scatter(arena_x, arena_y, s=25, color="#C2B280", label="Arena")
-            ax.scatter(hierro_x, hierro_y, s=25, color="gray", label="Hierro separado")
+            ax.scatter(sal_x, sal_y, s=15, color="white", edgecolors="black")
+            ax.scatter(arena_x, arena_y, s=25, color="#C2B280")
+            ax.scatter(hierro_x, hierro_y, s=25, color="gray")
 
-            # Línea del filtro
             ax.axhline(y=2.5, linestyle="--")
 
-            # Imán permanece
+            # Imán
             ax.add_patch(Rectangle((8, 2), 0.4, 2, color='red'))
             ax.add_patch(Rectangle((8.8, 2), 0.4, 2, color='blue'))
             ax.add_patch(Rectangle((8, 2), 1.2, 0.3, color='black'))
 
-            ax.legend(loc="upper left")
-
             placeholder.pyplot(fig)
             time.sleep(velocidad)
 
-        st.success("Proceso completo finalizado.")
+        # ==========================
+        # ETAPA 3 – RECIPIENTES
+        # ==========================
+
+        fig, ax = plt.subplots(figsize=(8, 5))
+        ax.set_xlim(0, 10)
+        ax.set_ylim(0, 6)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.set_title("Componentes Separados en Recipientes")
+
+        # Recipientes
+        ax.add_patch(Rectangle((1, 1), 2, 3, fill=False))
+        ax.add_patch(Rectangle((4, 1), 2, 3, fill=False))
+        ax.add_patch(Rectangle((7, 1), 2, 3, fill=False))
+
+        ax.text(2, 4.3, "Arena")
+        ax.text(5, 4.3, "Sal")
+        ax.text(8, 4.3, "Hierro")
+
+        # Contenido visual
+        ax.scatter(np.random.uniform(1.2, 2.8, n_arena),
+                   np.random.uniform(1.2, 3.5, n_arena),
+                   color="#C2B280")
+
+        ax.scatter(np.random.uniform(4.2, 5.8, n_sal),
+                   np.random.uniform(1.2, 3.5, n_sal),
+                   color="white", edgecolors="black")
+
+        ax.scatter(np.random.uniform(7.2, 8.8, n_hierro),
+                   np.random.uniform(1.2, 3.5, n_hierro),
+                   color="gray")
+
+        placeholder.pyplot(fig)
+
+        st.success("Proceso completado correctamente.")
 
         # ==========================
         # RESULTADOS FINALES
         # ==========================
 
         st.markdown("---")
-        st.subheader("Resultados Experimentales")
+        st.subheader("Verificación Experimental")
 
-        masas = {
-            "Sal": sal,
-            "Arena": arena,
-            "Hierro": hierro
-        }
-
-        st.write("Masas individuales (g):")
-        st.write(masas)
-
-        st.write(f"Masa total inicial: {masa_total:.2f} g")
-        st.write(f"Suma de componentes: {(sal + arena + hierro):.2f} g")
+        st.write(f"Masa inicial total: {masa_total:.2f} g")
+        st.write(f"Suma de componentes separados: {(sal + arena + hierro):.2f} g")
 
         fig2, ax2 = plt.subplots()
-        ax2.bar(masas.keys(), masas.values())
+        ax2.bar(["Sal", "Arena", "Hierro"], [sal, arena, hierro])
         ax2.set_ylabel("Masa (g)")
         ax2.set_title("Distribución Final de Masa")
 
