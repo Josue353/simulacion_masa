@@ -5,11 +5,11 @@ import time
 from matplotlib.patches import Rectangle
 
 st.set_page_config(
-    page_title="Simulador Científico de Separación",
+    page_title="Simulador Científico Avanzado",
     layout="wide"
 )
 
-st.title("Simulación Científica: Separación de Mezcla Sólida")
+st.title("Simulación Científica Avanzada: Separación de Mezcla Sólida")
 st.markdown("Sistema: Sal + Arena + Limaduras de Hierro")
 
 col1, col2 = st.columns([1, 2])
@@ -20,7 +20,7 @@ col1, col2 = st.columns([1, 2])
 
 with col1:
 
-    st.subheader("Configuración de Mezcla")
+    st.subheader("Configuración Experimental")
 
     modo = st.radio(
         "Tipo de mezcla",
@@ -39,7 +39,7 @@ with col1:
         sal, arena, hierro = 40.0, 40.0, 40.0
 
     campo = st.slider("Intensidad del campo magnético", 0.1, 2.0, 1.0)
-    velocidad = st.slider("Velocidad de simulación", 0.01, 0.15, 0.04)
+    velocidad = st.slider("Velocidad de simulación", 0.01, 0.12, 0.03)
     explicar = st.checkbox("🎤 Activar modo explicación")
 
     masa_total = sal + arena + hierro
@@ -54,10 +54,12 @@ with col1:
 with col2:
 
     placeholder = st.empty()
+    metric_placeholder = st.empty()
+    progress_bar = st.progress(0)
 
     if iniciar and masa_total > 0:
 
-        np.random.seed(10)
+        np.random.seed(15)
 
         n_sal = int(sal)
         n_arena = int(arena)
@@ -73,12 +75,12 @@ with col2:
         hierro_y = np.random.uniform(2.5, 5, n_hierro)
 
         # ==========================
-        # ETAPA 1 – IMANTACIÓN FLUIDA
+        # ETAPA 1 – IMANTACIÓN
         # ==========================
 
         if explicar:
-            st.info("Aplicamos un campo magnético. "
-                    "El hierro es atraído debido a sus propiedades ferromagnéticas.")
+            st.info("Aplicamos un campo magnético. El hierro es atraído "
+                    "debido a sus propiedades ferromagnéticas.")
 
         fig, ax = plt.subplots(figsize=(8, 5))
         ax.set_xlim(0, 10)
@@ -87,7 +89,6 @@ with col2:
         ax.set_yticks([])
         ax.set_title("Etapa 1: Imantación")
 
-        # Imán fijo
         ax.add_patch(Rectangle((8, 2), 0.4, 2, color='red'))
         ax.add_patch(Rectangle((8.8, 2), 0.4, 2, color='blue'))
         ax.add_patch(Rectangle((8, 2), 1.2, 0.3, color='black'))
@@ -98,7 +99,7 @@ with col2:
 
         placeholder.pyplot(fig)
 
-        for _ in range(60):
+        for step in range(70):
 
             dx = 8 - hierro_x
             dy = 3 - hierro_y
@@ -108,22 +109,33 @@ with col2:
             hierro_y += (dy / dist) * 0.25 * campo
 
             scatter_hierro.set_offsets(np.c_[hierro_x, hierro_y])
-
             placeholder.pyplot(fig)
+
+            # Métricas dinámicas
+            distancia_media = np.mean(dist)
+            porcentaje = min(100, int((1 - distancia_media / 8) * 100))
+
+            metric_placeholder.metric(
+                "Hierro separado (%)",
+                f"{max(0, porcentaje)}%"
+            )
+
+            progress_bar.progress(step / 140)
+
             time.sleep(velocidad)
 
         # ==========================
-        # ETAPA 2 – SEPARACIÓN MECÁNICA FLUIDA
+        # ETAPA 2 – SEPARACIÓN MECÁNICA
         # ==========================
 
         if explicar:
-            st.info("Realizamos una separación mecánica. "
-                    "La arena se separa por diferencia de tamaño de partícula.")
+            st.info("Se realiza separación mecánica por diferencia "
+                    "de tamaño de partícula.")
 
         ax.set_title("Etapa 2: Separación Mecánica")
         ax.axhline(y=2.5, linestyle="--")
 
-        for _ in range(60):
+        for step in range(70):
 
             arena_y -= 0.05
             sal_y += 0.015
@@ -132,14 +144,13 @@ with col2:
             scatter_sal.set_offsets(np.c_[sal_x, sal_y])
 
             placeholder.pyplot(fig)
+            progress_bar.progress((70 + step) / 140)
+
             time.sleep(velocidad)
 
         # ==========================
         # ETAPA 3 – RECIPIENTES
         # ==========================
-
-        if explicar:
-            st.info("Finalmente, cada componente se deposita en un recipiente separado.")
 
         fig2, ax2 = plt.subplots(figsize=(8, 5))
         ax2.set_xlim(0, 10)
@@ -148,7 +159,6 @@ with col2:
         ax2.set_yticks([])
         ax2.set_title("Componentes Separados")
 
-        # Recipientes
         ax2.add_patch(Rectangle((1, 1), 2, 3, fill=False))
         ax2.add_patch(Rectangle((4, 1), 2, 3, fill=False))
         ax2.add_patch(Rectangle((7, 1), 2, 3, fill=False))
