@@ -47,7 +47,7 @@ with col1:
     masa_total = sal + arena + hierro
     st.metric("Masa total inicial (Sistema cerrado)", f"{masa_total:.2f} g")
 
-    iniciar = st.button("Iniciar proceso de imantación")
+    iniciar = st.button("Iniciar proceso completo")
 
 # ==============================
 # ÁREA DE SIMULACIÓN
@@ -59,23 +59,23 @@ with col2:
 
     if iniciar and masa_total > 0:
 
-        np.random.seed(5)
+        np.random.seed(6)
 
         n_sal = int(sal)
         n_arena = int(arena)
         n_hierro = int(hierro)
 
         sal_x = np.random.uniform(1, 5, n_sal)
-        sal_y = np.random.uniform(1, 5, n_sal)
+        sal_y = np.random.uniform(2.5, 5, n_sal)
 
         arena_x = np.random.uniform(1, 5, n_arena)
-        arena_y = np.random.uniform(1, 5, n_arena)
+        arena_y = np.random.uniform(2.5, 5, n_arena)
 
         hierro_x = np.random.uniform(1, 5, n_hierro)
-        hierro_y = np.random.uniform(1, 5, n_hierro)
+        hierro_y = np.random.uniform(2.5, 5, n_hierro)
 
         # ==========================
-        # ANIMACIÓN DE IMANTACIÓN
+        # ETAPA 1 – IMANTACIÓN
         # ==========================
 
         for step in range(40):
@@ -85,7 +85,7 @@ with col2:
             ax.set_ylim(0, 6)
             ax.set_xticks([])
             ax.set_yticks([])
-            ax.set_title("Proceso de Imantación")
+            ax.set_title("Etapa 1: Imantación")
 
             dx = 8 - hierro_x
             dy = 3 - hierro_y
@@ -94,12 +94,11 @@ with col2:
             hierro_x += (dx / dist) * 0.2 * campo
             hierro_y += (dy / dist) * 0.2 * campo
 
-            # Dibujar partículas
             ax.scatter(sal_x, sal_y, s=15, color="white", edgecolors="black", label="Sal")
             ax.scatter(arena_x, arena_y, s=20, color="#C2B280", label="Arena")
             ax.scatter(hierro_x, hierro_y, s=25, color="gray", label="Hierro")
 
-            # Dibujar imán tipo herradura
+            # Imán tipo herradura
             ax.add_patch(Rectangle((8, 2), 0.4, 2, color='red'))
             ax.add_patch(Rectangle((8.8, 2), 0.4, 2, color='blue'))
             ax.add_patch(Rectangle((8, 2), 1.2, 0.3, color='black'))
@@ -109,7 +108,43 @@ with col2:
             placeholder.pyplot(fig)
             time.sleep(velocidad)
 
-        st.success("Hierro separado mediante campo magnético.")
+        # ==========================
+        # ETAPA 2 – SEPARACIÓN ARENA / SAL
+        # ==========================
+
+        for step in range(40):
+
+            fig, ax = plt.subplots(figsize=(8, 5))
+            ax.set_xlim(0, 10)
+            ax.set_ylim(0, 6)
+            ax.set_xticks([])
+            ax.set_yticks([])
+            ax.set_title("Etapa 2: Separación Mecánica (Filtración)")
+
+            # Arena cae hacia abajo
+            arena_y -= 0.07
+
+            # Sal sube ligeramente (permanece arriba)
+            sal_y += 0.02
+
+            ax.scatter(sal_x, sal_y, s=15, color="white", edgecolors="black", label="Sal")
+            ax.scatter(arena_x, arena_y, s=25, color="#C2B280", label="Arena")
+            ax.scatter(hierro_x, hierro_y, s=25, color="gray", label="Hierro separado")
+
+            # Línea del filtro
+            ax.axhline(y=2.5, linestyle="--")
+
+            # Imán permanece
+            ax.add_patch(Rectangle((8, 2), 0.4, 2, color='red'))
+            ax.add_patch(Rectangle((8.8, 2), 0.4, 2, color='blue'))
+            ax.add_patch(Rectangle((8, 2), 1.2, 0.3, color='black'))
+
+            ax.legend(loc="upper left")
+
+            placeholder.pyplot(fig)
+            time.sleep(velocidad)
+
+        st.success("Proceso completo finalizado.")
 
         # ==========================
         # RESULTADOS FINALES
@@ -130,11 +165,10 @@ with col2:
         st.write(f"Masa total inicial: {masa_total:.2f} g")
         st.write(f"Suma de componentes: {(sal + arena + hierro):.2f} g")
 
-        # Gráfica de barras
         fig2, ax2 = plt.subplots()
         ax2.bar(masas.keys(), masas.values())
         ax2.set_ylabel("Masa (g)")
-        ax2.set_title("Distribución de Masa por Componente")
+        ax2.set_title("Distribución Final de Masa")
 
         st.pyplot(fig2)
 
